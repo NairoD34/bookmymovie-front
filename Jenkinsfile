@@ -44,12 +44,35 @@ pipeline {
                     steps {
                         sendNotification("Running SonarQube analysis...", "INFO")
                         
-                        sh '''
-                            echo "🔍 Running SonarQube analysis for React..."
-                            # sonar-scanner
-                        '''
+                        script {
+                            def scannerHome = tool 'SonarQubeScanner'
+                            withSonarQubeEnv('sonarqube') {
+                                sh """
+                                    ${scannerHome}/bin/sonar-scanner \\
+                                        -Dsonar.projectKey=bookmymovie-front \\
+                                        -Dsonar.projectName='BookMyMovie Frontend' \\
+                                        -Dsonar.projectVersion=${APP_VERSION} \\
+                                        -Dsonar.sources=src \\
+                                        -Dsonar.exclusions='**/node_modules/**,**/*.test.js,**/coverage/**' \\
+                                        -Dsonar.tests=src \\
+                                        -Dsonar.test.inclusions='**/*.test.js' \\
+                                        -Dsonar.language=js
+                                """
+                            }
+                        }
                         
-                        sendNotification("SonarQube analysis completed", "SUCCESS")
+                        // Attendre le Quality Gate
+                        timeout(time: 5, unit: 'MINUTES') {
+                            script {
+                                def qg = waitForQualityGate()
+                                if (qg.status != 'OK') {
+                                    sendNotification("Quality Gate failed: ${qg.status}", "FAILURE")
+                                    error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                                } else {
+                                    sendNotification("Quality Gate passed successfully!", "SUCCESS")
+                                }
+                            }
+                        }
                     }
                 }
                 
