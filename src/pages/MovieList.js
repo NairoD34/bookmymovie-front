@@ -52,6 +52,8 @@ const MovieList = ({ movies, onError }) => {
           <option value="comedy">Comedy</option>
           <option value="drama">Drama</option>
           <option value="horror">Horror</option>
+          <option value="sci-fi">Sci-Fi</option>
+
         </select>
       </div>
 
