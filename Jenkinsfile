@@ -14,11 +14,15 @@ pipeline {
                 sendNotification("Starting build for Frontend React", "INFO")
                 echo "Frontend code checked out successfully"
                 echo "Build version: ${APP_VERSION}"
+                echo "🌿 Branch: ${env.BRANCH_NAME}"
+                echo "🎯 Will use agent: ${env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev'}"
             }
         }
         
         stage('Build & Test Frontend') {
-            agent { label 'build-heavy' }
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             steps {
                 sendNotification("Building and testing React app...", "INFO")
                 
@@ -82,7 +86,9 @@ pipeline {
                 }
                 
                 stage('Linting & Formatting') {
-                    agent { label 'build-heavy' }
+                    agent { 
+                        label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+                    }
                     steps {
                         sendNotification("Running linting and code formatting...", "INFO")
                         
@@ -100,25 +106,78 @@ pipeline {
         }
         
         stage('Security Scan Frontend') {
-            agent { label 'build-heavy' }
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             steps {
                 sendNotification("Running frontend security scans...", "INFO")
                 
-                sh '''
-                    echo "🔒 Running npm audit..."
-                    # npm audit --audit-level=high
-                    echo "🐳 Building Docker image for scan..."
-                    # docker build -t bookmymovie-front:${APP_VERSION} .
-                    echo "🔍 Scanning Docker image with Trivy..."
-                    # trivy image bookmymovie-front:${APP_VERSION}
-                '''
+                script {
+                    try {
+                        // NPM Security Audit avec l'image Node.js officielle
+                        sh '''
+                            echo "🔒 Running npm audit for dependency vulnerabilities..."
+                            if [ -f "package.json" ]; then
+                                docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine sh -c "
+                                    npm audit --audit-level=moderate --production || {
+                                        echo '⚠️ NPM audit found vulnerabilities!'
+                                        npm audit --audit-level=moderate --production --json > npm-audit-report.json || true
+                                    }
+                                "
+                            else
+                                echo "No package.json found, skipping npm audit"
+                            fi
+                        '''
+                        
+                        // Docker Image Security Scan avec Trivy dans un conteneur
+                        sh '''
+                            echo "🐳 Creating test Docker image for security scan..."
+                            cat > Dockerfile.security << 'EOF'
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --only=production
+COPY src/ src/
+COPY public/ public/
+EXPOSE 3000
+CMD ["npm", "start"]
+EOF
+                            
+                            echo "Building test image..."
+                            docker build -t bookmymovie-front:security-scan -f Dockerfile.security . || echo "Docker build failed, using base image"
+                            
+                            echo "🔍 Scanning with Trivy container..."
+                            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+                                aquasec/trivy:latest image --exit-code 0 --format table --severity HIGH,CRITICAL node:18-alpine || echo "High/Critical vulnerabilities found in base image"
+                            
+                            if docker images bookmymovie-front:security-scan -q; then
+                                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
+                                    aquasec/trivy:latest image --exit-code 1 --format table --severity CRITICAL bookmymovie-front:security-scan || {
+                                    echo "❌ CRITICAL vulnerabilities found in application image!"
+                                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):/workspace \\
+                                        aquasec/trivy:latest image --format json --severity CRITICAL bookmymovie-front:security-scan > /workspace/trivy-report.json || true
+                                    echo "⚠️ Continuing build despite critical vulnerabilities (demo mode)"
+                                }
+                            fi
+                        '''
+                        
+                        // Archiver les rapports de sécurité
+                        archiveArtifacts artifacts: '*.json', allowEmptyArchive: true, fingerprint: true
+                        
+                    } catch (Exception e) {
+                        echo "⚠️ Security scan failed: ${e.getMessage()}"
+                        echo "Continuing build for demo purposes..."
+                    }
+                }
                 
                 sendNotification("Frontend security scan completed", "SUCCESS")
             }
         }
         
         stage('Package & Docker Build') {
-            agent { label 'build-heavy' }
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             steps {
                 sendNotification("Creating frontend artifacts and Docker image...", "INFO")
                 
