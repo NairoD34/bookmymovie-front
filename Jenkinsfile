@@ -28,7 +28,7 @@ pipeline {
                 
                 // Build et tests React/Node.js avec conteneur Node.js
                 script {
-                    docker.image('node:18-alpine').inside('-v /home/jenkins/workspace/bookmymovie-front_main:/workspace -w /workspace') {
+                    docker.image('node:18-alpine').inside() {
                         sh '''
                             echo "📦 Installing Node.js dependencies..."
                             npm install
