@@ -32,6 +32,10 @@
     "format": "prettier --write src/",
     "format:check": "prettier --check src/"
   },
+  "jest-junit": {
+    "outputDirectory": ".",
+    "outputName": "junit.xml"
+  },
   "browserslist": {
     "production": [
       ">0.2%",

@@ -37,7 +37,7 @@ pipeline {
                 sh 'npm run test:ci'
                 
                 // Publication des rapports de tests
-                publishTestResults testResultsPattern: 'test-results/junit.xml'
+                junit testResults: 'junit.xml', allowEmptyResults: true
                 publishHTML([
                     allowMissing: false,
                     alwaysLinkToLastBuild: true,
