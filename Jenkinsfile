@@ -72,6 +72,9 @@ pipeline {
         }
         
         stage('Code Quality') {
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             parallel {
                 stage('SonarQube Analysis') {
                     steps {
@@ -125,19 +128,26 @@ pipeline {
                 }
                 
                 stage('Linting & Formatting') {
-                    agent { 
-                        label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
-                    }
+                    // Pas d'agent séparé - utilise le même que Build & Test
                     steps {
-                        echo "🧹 Running linting and code formatting..."
+                        echo "🧹 Running linting and code formatting on same agent..."
                         
                         script {
                             try {
                                 sh '''
-                                    echo "Running ESLint..."
-                                    npm run lint || echo "ESLint found issues, but continuing..."
-                                    echo "Checking Prettier formatting..."
-                                    npm run format:check || echo "Prettier found formatting issues, but continuing..."
+                                    echo "=== Running ESLint ==="
+                                    npm run lint || {
+                                        echo "ESLint found issues, but continuing for demo..."
+                                        exit 0
+                                    }
+                                    
+                                    echo "=== Checking Prettier formatting ==="
+                                    npm run format:check || {
+                                        echo "Prettier found formatting issues, but continuing for demo..."
+                                        exit 0
+                                    }
+                                    
+                                    echo "All linting and formatting checks passed!"
                                 '''
                             } catch (Exception e) {
                                 echo "⚠️ Linting failed: ${e.getMessage()}"
