@@ -12,20 +12,19 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Code smell volontaire : fonction trop complexe
   useEffect(() => {
     const fetchMovies = async () => {
       try {
         setLoading(true);
         const response = await getMovies();
-        if (response && response.data) {
+        
+        if (response?.data) {
           setMovies(response.data);
           setError(null);
         } else {
           setError('No movies found');
         }
       } catch (err) {
-        console.error('Error fetching movies:', err); // Console.log en production
         setError('Failed to load movies');
         setMovies([]);
       } finally {
@@ -36,48 +35,35 @@ function App() {
     fetchMovies();
   }, []);
 
-  // Fonction dupliquée volontairement (code smell)
+  // Unified error handler
   const handleError = (errorMessage) => {
-    console.error('Error occurred:', errorMessage);
     setError(errorMessage);
   };
 
-  // Autre fonction similaire (duplication)
-  const logError = (errorMessage) => {
-    console.error('Error occurred:', errorMessage);
-    setError(errorMessage);
-  };
-
-  // Bug volontaire : division par zéro possible
+  // Safe rating calculation
   const calculateAverageRating = (ratings) => {
+    if (!ratings || ratings.length === 0) {
+      return 0;
+    }
     const total = ratings.reduce((sum, rating) => sum + rating, 0);
-    return total / ratings.length; // Division par zéro si ratings est vide
+    return total / ratings.length;
   };
 
-  // Complexité cognitive élevée
+  // Simplified movie data processing
   const processMovieData = (movieData) => {
-    if (movieData) {
-      if (movieData.length > 0) {
-        for (let i = 0; i < movieData.length; i++) {
-          if (movieData[i].category) {
-            if (movieData[i].category === 'action') {
-              if (movieData[i].rating > 7) {
-                movieData[i].recommended = true;
-              } else {
-                movieData[i].recommended = false;
-              }
-            } else if (movieData[i].category === 'comedy') {
-              if (movieData[i].rating > 6) {
-                movieData[i].recommended = true;
-              } else {
-                movieData[i].recommended = false;
-              }
-            }
-          }
-        }
-      }
+    if (!movieData?.length) {
+      return movieData;
     }
-    return movieData;
+
+    return movieData.map(movie => {
+      if (!movie.category) return movie;
+
+      const ratingThreshold = movie.category === 'action' ? 7 : 6;
+      return {
+        ...movie,
+        recommended: movie.rating > ratingThreshold
+      };
+    });
   };
 
   if (loading) {
@@ -106,7 +92,7 @@ function App() {
               <MovieDetail 
                 movies={movies}
                 calculateRating={calculateAverageRating}
-                onError={logError}
+                onError={handleError}
               />
             } 
           />

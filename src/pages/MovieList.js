@@ -6,31 +6,16 @@ const MovieList = ({ movies, onError }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Logique de filtrage complexe avec des conditions imbriquées
+  // Simplified filtering logic
   useEffect(() => {
     let result = movies;
     
-    // Code avec beaucoup de conditions imbriquées (complexité cognitive)
-    if (searchTerm) {
-      if (searchTerm.length > 2) {
-        result = result.filter(movie => {
-          if (movie.title) {
-            if (movie.title.toLowerCase().includes(searchTerm.toLowerCase())) {
-              return true;
-            } else if (movie.description) {
-              if (movie.description.toLowerCase().includes(searchTerm.toLowerCase())) {
-                return true;
-              } else {
-                return false;
-              }
-            } else {
-              return false;
-            }
-          } else {
-            return false;
-          }
-        });
-      }
+    // Clean search filtering
+    if (searchTerm && searchTerm.length > 2) {
+      result = result.filter(movie => 
+        movie.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        movie.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     }
 
     if (selectedCategory !== 'all') {
@@ -40,28 +25,10 @@ const MovieList = ({ movies, onError }) => {
     setFilteredMovies(result);
   }, [movies, searchTerm, selectedCategory]);
 
-  // Fonction avec paramètres inutilisés
-  const handleMovieClick = (movieId, unusedParam, anotherUnused) => {
-    // Bug potentiel : pas de vérification de movieId
-    window.location.href = `/movie/${movieId}`;
-  };
-
-  // Code dupliqué
+  // Unified rating display function
   const formatRating = (rating) => {
-    if (rating >= 9) return '⭐⭐⭐⭐⭐';
-    if (rating >= 7) return '⭐⭐⭐⭐';
-    if (rating >= 5) return '⭐⭐⭐';
-    if (rating >= 3) return '⭐⭐';
-    return '⭐';
-  };
-
-  // Fonction similaire (duplication)
-  const displayStars = (rating) => {
-    if (rating >= 9) return '⭐⭐⭐⭐⭐';
-    if (rating >= 7) return '⭐⭐⭐⭐';
-    if (rating >= 5) return '⭐⭐⭐';
-    if (rating >= 3) return '⭐⭐';
-    return '⭐';
+    const stars = Math.min(5, Math.max(1, Math.ceil(rating / 2)));
+    return '⭐'.repeat(stars);
   };
 
   return (

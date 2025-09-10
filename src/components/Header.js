@@ -1,16 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-// Composant avec variables inutilisées (code smell)
+// Clean header component
 const Header = () => {
-  const unusedVariable = "This variable is never used";
-  const anotherUnusedVar = 42;
-  
-  // Fonction jamais appelée
-  const handleUnusedFunction = () => {
-    console.log("This function is never called");
-  };
-
   return (
     <header className="header">
       <div className="container">
