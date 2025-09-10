@@ -18,7 +18,9 @@ pipeline {
         }
         
         stage('Build & Test Frontend') {
-            agent { label 'build-heavy' }
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             steps {
                 sendNotification("Building and testing React app...", "INFO")
                 
@@ -82,7 +84,9 @@ pipeline {
                 }
                 
                 stage('Linting & Formatting') {
-                    agent { label 'build-heavy' }
+                    agent { 
+                        label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+                    }
                     steps {
                         sendNotification("Running linting and code formatting...", "INFO")
                         
@@ -100,7 +104,9 @@ pipeline {
         }
         
         stage('Security Scan Frontend') {
-            agent { label 'build-heavy' }
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             steps {
                 sendNotification("Running frontend security scans...", "INFO")
                 
@@ -118,7 +124,9 @@ pipeline {
         }
         
         stage('Package & Docker Build') {
-            agent { label 'build-heavy' }
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             steps {
                 sendNotification("Creating frontend artifacts and Docker image...", "INFO")
                 
