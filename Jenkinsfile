@@ -61,8 +61,8 @@ pipeline {
                             }
                         }
                         
-                        // Attendre le Quality Gate avec timeout réduit
-                        timeout(time: 2, unit: 'MINUTES') {
+                        // Attendre le Quality Gate avec timeout légèrement augmenté
+                        timeout(time: 5, unit: 'MINUTES') {
                             script {
                                 def qg = waitForQualityGate()
                                 if (qg.status != 'OK') {
