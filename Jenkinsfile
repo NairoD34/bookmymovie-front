@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                sendNotification("Starting build for Frontend React", "INFO")
+                echo "📋 Starting build for Frontend React"
                 echo "Frontend code checked out successfully"
                 echo "Build version: ${APP_VERSION}"
                 echo "Branch: ${env.BRANCH_NAME}"
@@ -24,7 +24,7 @@ pipeline {
                 label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
             }
             steps {
-                sendNotification("Building and testing React app...", "INFO")
+                sendNotification("🏗️ Building and testing React app...", "INFO")
                 
                 // Build et tests React/Node.js avec conteneurs Docker
                 sh '''
@@ -59,7 +59,7 @@ pipeline {
                     reportName: 'Coverage Report'
                 ])
                 
-                sendNotification("Frontend build and tests completed successfully", "SUCCESS")
+                sendNotification("✅ Frontend build and tests completed successfully", "SUCCESS")
             }
         }
         
@@ -67,7 +67,7 @@ pipeline {
             parallel {
                 stage('SonarQube Analysis') {
                     steps {
-                        sendNotification("Running SonarQube analysis...", "INFO")
+                        echo "🔍 Running SonarQube analysis..."
                         
                         script {
                             def scannerHome = tool 'SonarQubeScanner'
@@ -86,7 +86,7 @@ pipeline {
                             }
                         }
                         
-                        sendNotification("SonarQube analysis completed successfully", "SUCCESS")
+                        echo "✅ SonarQube analysis completed successfully"
                         
                         /*
                         // Attendre le Quality Gate avec timeout légèrement augmenté
@@ -94,10 +94,10 @@ pipeline {
                             script {
                                 def qg = waitForQualityGate()
                                 if (qg.status != 'OK') {
-                                    sendNotification("Quality Gate failed: ${qg.status}", "FAILURE")
+                                    echo "❌ Quality Gate failed: ${qg.status}"
                                     error "Pipeline aborted due to quality gate failure: ${qg.status}"
                                 } else {
-                                    sendNotification("Quality Gate passed successfully!", "SUCCESS")
+                                    echo "✅ Quality Gate passed successfully!"
                                 }
                             }
                         }
@@ -110,7 +110,7 @@ pipeline {
                         label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
                     }
                     steps {
-                        sendNotification("Running linting and code formatting...", "INFO")
+                        echo "🧹 Running linting and code formatting..."
                         
                         sh '''
                             echo "Running ESLint..."
@@ -119,7 +119,7 @@ pipeline {
                             # npm run format:check
                         '''
                         
-                        sendNotification("Code quality checks passed", "SUCCESS")
+                        echo "✅ Code quality checks passed"
                     }
                 }
             }
@@ -130,7 +130,7 @@ pipeline {
                 label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
             }
             steps {
-                sendNotification("Running frontend security scans...", "INFO")
+                echo "🔒 Running frontend security scans..."
                 
                 script {
                     try {
@@ -190,7 +190,7 @@ EOF
                     }
                 }
                 
-                sendNotification("Frontend security scan completed", "SUCCESS")
+                echo "✅ Frontend security scan completed"
             }
         }
         
@@ -199,7 +199,7 @@ EOF
                 label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
             }
             steps {
-                sendNotification("Creating frontend artifacts and Docker image...", "INFO")
+                echo "📦 Creating frontend artifacts and Docker image..."
                 
                 sh '''
                     echo "Creating build artifacts..."
@@ -217,7 +217,7 @@ EOF
                 
                 archiveArtifacts artifacts: 'dist/**', fingerprint: true
                 
-                sendNotification("Frontend artifacts and Docker image created", "SUCCESS")
+                echo "✅ Frontend artifacts and Docker image created"
             }
         }
         
@@ -226,7 +226,7 @@ EOF
                 branch 'main'
             }
             steps {
-                sendNotification("Deploying frontend to staging environment...", "INFO")
+                echo "🚀 Deploying frontend to staging environment..."
                 
                 sh '''
                     echo "Deploying to staging..."
@@ -235,7 +235,7 @@ EOF
                     echo "Frontend deployed to staging environment"
                 '''
                 
-                sendNotification("Frontend successfully deployed to staging", "SUCCESS")
+                echo "✅ Frontend successfully deployed to staging"
             }
         }
         
@@ -244,7 +244,7 @@ EOF
                 branch 'main'
             }
             steps {
-                sendNotification("Waiting for manual approval for production deployment...", "INFO")
+                echo "⏳ Waiting for manual approval for production deployment..."
                 
                 script {
                     def deployDecision = input(
@@ -259,7 +259,7 @@ EOF
                     }
                 }
                 
-                sendNotification("Production deployment approved", "SUCCESS")
+                echo "✅ Production deployment approved"
             }
         }
         
@@ -268,7 +268,7 @@ EOF
                 branch 'main'
             }
             steps {
-                sendNotification("Deploying frontend to production environment...", "INFO")
+                echo "🌟 Deploying frontend to production environment..."
                 
                 sh '''
                     echo "Deploying to production..."
@@ -277,17 +277,17 @@ EOF
                     echo "Frontend deployed to production environment"
                 '''
                 
-                sendNotification("Frontend successfully deployed to production!", "SUCCESS")
+                echo "🎉 Frontend successfully deployed to production!"
             }
         }
     }
     
     post {
         success {
-            sendNotification("Frontend pipeline completed successfully! Version: ${APP_VERSION} deployed", "SUCCESS")
+            sendNotification("🎊 Frontend pipeline completed successfully! Version: ${APP_VERSION} deployed", "SUCCESS")
         }
         failure {
-            sendNotification("Frontend pipeline failed! Check the logs.", "FAILURE")
+            sendNotification("💥 Frontend pipeline failed! Check the logs.", "FAILURE")
         }
         always {
             echo "Cleaning up workspace..."
