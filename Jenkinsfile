@@ -31,6 +31,8 @@ pipeline {
                 
                 // Build et tests React/Node.js simple comme l'API
                 sh 'npm install'
+                sh 'npx react-scripts --version || echo "react-scripts not found, checking node_modules..."'
+                sh 'ls -la node_modules/.bin/ | grep react || echo "No react scripts in node_modules/.bin"'
                 sh 'npm run build'
                 sh 'npm run test:ci'
                 
