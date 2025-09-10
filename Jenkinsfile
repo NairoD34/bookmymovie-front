@@ -59,15 +59,9 @@ pipeline {
                 // Publication du rapport de couverture (optionnel)
                 script {
                     if (fileExists('coverage/lcov-report/index.html')) {
-                        publishHTML([
-                            allowMissing: false,
-                            alwaysLinkToLastBuild: true,
-                            keepAll: true,
-                            reportDir: 'coverage/lcov-report',
-                            reportFiles: 'index.html',
-                            reportName: 'Coverage Report'
-                        ])
-                        echo "✅ Coverage report published"
+                        // Archive les rapports de couverture
+                        archiveArtifacts artifacts: 'coverage/**/*', allowEmptyArchive: true, fingerprint: true
+                        echo "✅ Coverage report archived"
                     } else {
                         echo "⚠️ Coverage report not found, skipping"
                     }
