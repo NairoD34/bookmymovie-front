@@ -28,14 +28,16 @@ pipeline {
                 
                 // Build et tests React/Node.js avec docker run
                 sh '''
-                    echo "📦 Installing Node.js dependencies..."
-                    docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine npm install
+                    echo "� Debug: Listing current directory..."
+                    ls -la
+                    echo "�📦 Installing Node.js dependencies..."
+                    docker run --rm -v $(pwd):/app -w /app node:18-alpine npm install
                     echo "🔨 Building React application..."
-                    docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine npm run build
+                    docker run --rm -v $(pwd):/app -w /app node:18-alpine npm run build
                     echo "🧪 Running Jest tests with coverage and JUnit reports..."
-                    docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine npm run test:ci
+                    docker run --rm -v $(pwd):/app -w /app node:18-alpine npm run test:ci
                     echo "🌐 Running E2E tests..."
-                    # docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine npm run test:e2e
+                    # docker run --rm -v $(pwd):/app -w /app node:18-alpine npm run test:e2e
                 '''
                 
                 // Publication des rapports de tests
