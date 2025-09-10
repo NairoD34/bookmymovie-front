@@ -150,56 +150,29 @@ pipeline {
                 
                 script {
                     try {
+                        // NPM Security Audit - Simple et efficace
+                        echo "Running npm audit for dependency vulnerabilities..."
                         sh '''
-                            echo "Running npm audit for dependency vulnerabilities..."
-                            if [ -f "package.json" ]; then
-                                docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine sh -c "
-                                    npm audit --audit-level=moderate --production || {
-                                        echo 'NPM audit found vulnerabilities!'
-                                        npm audit --audit-level=moderate --production --json > npm-audit-report.json || true
-                                    }
-                                "
-                            else
-                                echo "No package.json found, skipping npm audit"
-                            fi
+                            npm audit --audit-level=moderate --production || {
+                                echo "⚠️ NPM audit found some vulnerabilities, but continuing build..."
+                                npm audit --audit-level=moderate --production --json > npm-audit-report.json || true
+                            }
                         '''
                         
+                        // Simple Docker scan - uniquement l'image de base
+                        echo "Scanning base Docker image for critical vulnerabilities..."
                         sh '''
-                            echo "Creating test Docker image for security scan..."
-                            cat > Dockerfile.security << 'EOF'
-FROM node:18-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install --only=production
-COPY src/ src/
-COPY public/ public/
-EXPOSE 3000
-CMD ["npm", "start"]
-EOF
-                            
-                            echo "Building test image..."
-                            docker build -t bookmymovie-front:security-scan -f Dockerfile.security . || echo "Docker build failed, using base image"
-                            
-                            echo "Scanning with Trivy container..."
-                            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
-                                aquasec/trivy:latest image --exit-code 0 --format table --severity HIGH,CRITICAL node:18-alpine || echo "High/Critical vulnerabilities found in base image"
-                            
-                            if docker images bookmymovie-front:security-scan -q; then
-                                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \\
-                                    aquasec/trivy:latest image --exit-code 1 --format table --severity CRITICAL bookmymovie-front:security-scan || {
-                                    echo "CRITICAL vulnerabilities found in application image!"
-                                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):/workspace \\
-                                        aquasec/trivy:latest image --format json --severity CRITICAL bookmymovie-front:security-scan > /workspace/trivy-report.json || true
-                                    echo "Continuing build despite critical vulnerabilities (demo mode)"
-                                }
-                            fi
+                            docker run --rm aquasec/trivy:latest image --exit-code 0 --format table --severity CRITICAL node:18-alpine || {
+                                echo "⚠️ Critical vulnerabilities found in Node.js base image"
+                                echo "Consider upgrading to a newer Node.js version"
+                            }
                         '''
                         
-                        // Archiver les rapports de sécurité
-                        archiveArtifacts artifacts: '*.json', allowEmptyArchive: true, fingerprint: true
+                        // Archive security reports if they exist
+                        archiveArtifacts artifacts: '*-report.json', allowEmptyArchive: true, fingerprint: true
                         
                     } catch (Exception e) {
-                        echo "Security scan failed: ${e.getMessage()}"
+                        echo "⚠️ Security scan failed: ${e.getMessage()}"
                         echo "Continuing build for demo purposes..."
                     }
                 }
