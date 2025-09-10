@@ -47,3 +47,4 @@ temp/
 # Security scan reports
 *.json
 !package*.json
+!.eslintrc.json

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="3" failures="0" errors="0" time="3.949">
+  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2025-09-10T14:33:45" time="1.822" tests="3">
+    <testcase classname=" renders BookMyMovie title" name=" renders BookMyMovie title" time="0.043">
+    </testcase>
+    <testcase classname=" renders movie cards" name=" renders movie cards" time="0.007">
+    </testcase>
+    <testcase classname=" renders booking buttons" name=" renders booking buttons" time="0.004">
+    </testcase>
+  </testsuite>
+</testsuites>

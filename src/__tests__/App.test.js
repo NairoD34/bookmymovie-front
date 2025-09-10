@@ -1,5 +1,4 @@
-﻿import React from 'react';
-import { render, screen } from '@testing-library/react';
+﻿import { render, screen } from '@testing-library/react';
 import App from '../App';
 
 test('renders BookMyMovie title', () => {
@@ -13,7 +12,7 @@ test('renders movie cards', () => {
   const avengerElement = screen.getByText(/Avengers: Endgame/i);
   const darkKnightElement = screen.getByText(/The Dark Knight/i);
   const inceptionElement = screen.getByText(/Inception/i);
-  
+
   expect(avengerElement).toBeInTheDocument();
   expect(darkKnightElement).toBeInTheDocument();
   expect(inceptionElement).toBeInTheDocument();

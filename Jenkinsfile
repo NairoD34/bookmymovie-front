@@ -29,14 +29,12 @@ pipeline {
             steps {
                 sendNotification("🏗️ Building and testing React app...", "INFO")
                 
-                // Build et tests React/Node.js simple comme l'API
                 sh 'npm install'
                 sh 'npx react-scripts --version || echo "react-scripts not found, checking node_modules..."'
                 sh 'ls -la node_modules/.bin/ | grep react || echo "No react scripts in node_modules/.bin"'
                 sh 'npm run build'
                 sh 'npm run test:ci'
                 
-                // Vérification des fichiers générés
                 sh '''
                     echo "Checking generated files:"
                     ls -la
@@ -46,7 +44,6 @@ pipeline {
                     ls -la coverage/ || echo "coverage directory not found"
                 '''
                 
-                // Publication des rapports de tests (optionnel)
                 script {
                     if (fileExists('junit.xml')) {
                         junit testResults: 'junit.xml', allowEmptyResults: true
@@ -56,7 +53,6 @@ pipeline {
                     }
                 }
                 
-                // Publication du rapport de couverture (optionnel)
                 script {
                     if (fileExists('coverage/lcov-report/index.html')) {
                         // Archive les rapports de couverture
@@ -78,7 +74,6 @@ pipeline {
             steps {
                 echo "🔍 Running code quality checks..."
                 
-                // SonarQube Analysis
                 script {
                     try {
                         def scannerHome = tool 'SonarQubeScanner'
@@ -98,7 +93,6 @@ pipeline {
                         }
                         echo "✅ SonarQube analysis completed successfully"
                         
-                        // Quality Gate check
                         try {
                             timeout(time: 3, unit: 'MINUTES') {
                                 def qg = waitForQualityGate()
@@ -119,7 +113,6 @@ pipeline {
                     }
                 }
                 
-                // Linting & Formatting
                 echo "🧹 Running linting and code formatting..."
                 script {
                     try {
@@ -157,7 +150,6 @@ pipeline {
                 
                 script {
                     try {
-                        // NPM Security Audit avec l'image Node.js officielle
                         sh '''
                             echo "Running npm audit for dependency vulnerabilities..."
                             if [ -f "package.json" ]; then
@@ -172,7 +164,6 @@ pipeline {
                             fi
                         '''
                         
-                        // Docker Image Security Scan avec Trivy dans un conteneur
                         sh '''
                             echo "Creating test Docker image for security scan..."
                             cat > Dockerfile.security << 'EOF'

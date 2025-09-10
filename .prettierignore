@@ -1,0 +1,8 @@
+build/
+dist/
+node_modules/
+coverage/
+*.log
+*.xml
+*.json
+public/

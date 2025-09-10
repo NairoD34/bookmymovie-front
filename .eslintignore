@@ -1,0 +1,8 @@
+build/
+dist/
+node_modules/
+coverage/
+public/
+*.config.js
+*.config.ts
+serviceWorker.js
