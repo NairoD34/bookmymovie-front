@@ -1,4 +1,23 @@
-@Library('jenkins-shared-lib                // Build et tests React/Node.js avec copie de fichiers
+@Library('jenkins-shared-lib                //                 sh '''
+                    echo "Debug: Listing current directory..."
+                    ls -la
+                    echo "Installing Node.js dependencies..."
+                    # Creer un conteneur temporaire et copier les fichiers
+                    docker create --name temp-node node:18-alpine
+                    docker cp . temp-node:/app
+                    docker start temp-node
+                    docker exec -w /app temp-node npm install
+                    echo "Building React application..."
+                    docker exec -w /app temp-node npm run build
+                    echo "Running Jest tests with coverage and JUnit reports..."
+                    docker exec -w /app temp-node npm run test:ci
+                    echo "Copying test results back..."
+                    docker cp temp-node:/app/test-results ./test-results 2>/dev/null || echo "No test-results directory"
+                    docker cp temp-node:/app/coverage ./coverage 2>/dev/null || echo "No coverage directory"
+                    docker rm -f temp-node
+                    echo "Running E2E tests..."
+                    # docker run --rm -v $(pwd):/app -w /app node:18-alpine npm run test:e2e
+                '''ts React/Node.js avec copie de fichiers
                 sh '''
                     echo "🔍 Debug: Listing current directory..."
                     ls -la
@@ -44,7 +63,7 @@
             steps {
                 sendNotification("Building and testing React app...", "INFO")
                 
-                // Build et tests React/Node.js avec docker run
+                // Build et tests React/Node.js avec copie de fichiers
                 sh '''
                     echo "� Debug: Listing current directory..."
                     ls -la
