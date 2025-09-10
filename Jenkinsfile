@@ -26,21 +26,17 @@ pipeline {
             steps {
                 sendNotification("Building and testing React app...", "INFO")
                 
-                // Build et tests React/Node.js avec conteneur Node.js
-                script {
-                    docker.image('node:18-alpine').inside() {
-                        sh '''
-                            echo "📦 Installing Node.js dependencies..."
-                            npm install
-                            echo "🔨 Building React application..."
-                            npm run build
-                            echo "🧪 Running Jest tests with coverage and JUnit reports..."
-                            npm run test:ci
-                            echo "🌐 Running E2E tests..."
-                            # npm run test:e2e
-                        '''
-                    }
-                }
+                // Build et tests React/Node.js avec docker run
+                sh '''
+                    echo "📦 Installing Node.js dependencies..."
+                    docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine npm install
+                    echo "🔨 Building React application..."
+                    docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine npm run build
+                    echo "🧪 Running Jest tests with coverage and JUnit reports..."
+                    docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine npm run test:ci
+                    echo "🌐 Running E2E tests..."
+                    # docker run --rm -v $(pwd):/workspace -w /workspace node:18-alpine npm run test:e2e
+                '''
                 
                 // Publication des rapports de tests
                 publishTestResults testResultsPattern: 'test-results/junit.xml'
