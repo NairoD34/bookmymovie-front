@@ -26,17 +26,28 @@ pipeline {
             steps {
                 sendNotification("Building and testing React app...", "INFO")
                 
-                // Simulation d'un build React/Node.js
+                // Build et tests React/Node.js avec vraie exécution
                 sh '''
                     echo "📦 Installing Node.js dependencies..."
-                    # npm install
+                    npm install
                     echo "🔨 Building React application..."
-                    # npm run build
-                    echo "🧪 Running Jest tests..."
-                    # npm test -- --coverage
+                    npm run build
+                    echo "🧪 Running Jest tests with coverage and JUnit reports..."
+                    npm run test:ci
                     echo "🌐 Running E2E tests..."
                     # npm run test:e2e
                 '''
+                
+                // Publication des rapports de tests
+                publishTestResults testResultsPattern: 'test-results/junit.xml'
+                publishHTML([
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'coverage/lcov-report',
+                    reportFiles: 'index.html',
+                    reportName: 'Coverage Report'
+                ])
                 
                 sendNotification("Frontend build and tests completed successfully", "SUCCESS")
             }

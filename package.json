@@ -17,12 +17,14 @@
     "eslint": "^8.34.0",
     "eslint-plugin-react": "^7.32.2",
     "prettier": "^2.8.4",
-    "jest": "^29.4.0"
+    "jest": "^29.4.0",
+    "jest-junit": "^15.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "jest",
+    "test:ci": "jest --ci --coverage --reporters=default --reporters=jest-junit",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
@@ -48,6 +50,13 @@
       "src/**/*.{js,jsx}",
       "!src/index.js",
       "!src/reportWebVitals.js"
+    ],
+    "reporters": [
+      "default",
+      ["jest-junit", {
+        "outputDirectory": "./test-results",
+        "outputName": "junit.xml"
+      }]
     ]
   }
 }
