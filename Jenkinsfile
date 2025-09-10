@@ -26,17 +26,21 @@ pipeline {
             steps {
                 sendNotification("Building and testing React app...", "INFO")
                 
-                // Build et tests React/Node.js avec vraie exécution
-                sh '''
-                    echo "📦 Installing Node.js dependencies..."
-                    npm install
-                    echo "🔨 Building React application..."
-                    npm run build
-                    echo "🧪 Running Jest tests with coverage and JUnit reports..."
-                    npm run test:ci
-                    echo "🌐 Running E2E tests..."
-                    # npm run test:e2e
-                '''
+                // Build et tests React/Node.js avec conteneur Node.js
+                script {
+                    docker.image('node:18-alpine').inside('-v /home/jenkins/workspace/bookmymovie-front_main:/workspace -w /workspace') {
+                        sh '''
+                            echo "📦 Installing Node.js dependencies..."
+                            npm install
+                            echo "🔨 Building React application..."
+                            npm run build
+                            echo "🧪 Running Jest tests with coverage and JUnit reports..."
+                            npm run test:ci
+                            echo "🌐 Running E2E tests..."
+                            # npm run test:e2e
+                        '''
+                    }
+                }
                 
                 // Publication des rapports de tests
                 publishTestResults testResultsPattern: 'test-results/junit.xml'
