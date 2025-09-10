@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "bookmymovie-front",
   "version": "1.0.0",
   "description": "BookMyMovie - Frontend React Application",
@@ -43,21 +43,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "jest": {
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/src/setupTests.js"],
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}",
-      "!src/index.js",
-      "!src/reportWebVitals.js"
-    ],
-    "reporters": [
-      "default",
-      ["jest-junit", {
-        "outputDirectory": "./test-results",
-        "outputName": "junit.xml"
-      }]
-    ]
   }
+  
 }
