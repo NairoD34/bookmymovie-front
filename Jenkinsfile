@@ -65,7 +65,6 @@ pipeline {
                             }
                         }
                         
-                        // Quality Gate désactivé temporairement - analyse SonarQube terminée avec succès
                         sendNotification("SonarQube analysis completed successfully", "SUCCESS")
                         
                         /*
