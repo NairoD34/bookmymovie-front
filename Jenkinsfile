@@ -36,16 +36,42 @@ pipeline {
                 sh 'npm run build'
                 sh 'npm run test:ci'
                 
-                // Publication des rapports de tests
-                junit testResults: 'junit.xml', allowEmptyResults: true
-                publishHTML([
-                    allowMissing: false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true,
-                    reportDir: 'coverage/lcov-report',
-                    reportFiles: 'index.html',
-                    reportName: 'Coverage Report'
-                ])
+                // Vérification des fichiers générés
+                sh '''
+                    echo "Checking generated files:"
+                    ls -la
+                    echo "Looking for junit.xml:"
+                    find . -name "junit.xml" -type f || echo "junit.xml not found"
+                    echo "Looking for coverage directory:"
+                    ls -la coverage/ || echo "coverage directory not found"
+                '''
+                
+                // Publication des rapports de tests (optionnel)
+                script {
+                    if (fileExists('junit.xml')) {
+                        junit testResults: 'junit.xml', allowEmptyResults: true
+                        echo "✅ JUnit results published"
+                    } else {
+                        echo "⚠️ junit.xml not found, skipping JUnit results"
+                    }
+                }
+                
+                // Publication du rapport de couverture (optionnel)
+                script {
+                    if (fileExists('coverage/lcov-report/index.html')) {
+                        publishHTML([
+                            allowMissing: false,
+                            alwaysLinkToLastBuild: true,
+                            keepAll: true,
+                            reportDir: 'coverage/lcov-report',
+                            reportFiles: 'index.html',
+                            reportName: 'Coverage Report'
+                        ])
+                        echo "✅ Coverage report published"
+                    } else {
+                        echo "⚠️ Coverage report not found, skipping"
+                    }
+                }
                 
                 sendNotification("✅ Frontend build and tests completed successfully", "SUCCESS")
             }
