@@ -25,7 +25,7 @@ function App() {
           
           <div className="movie-card">
             <h3>Inception</h3>
-            <p>Un thriller psychologique captivant</p>
+            <p>Un thriller psychologique captivant pouet</p>
             <button className="btn btn-primary">Réserver</button>
           </div>
         </section>
