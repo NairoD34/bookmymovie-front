@@ -14,59 +14,46 @@ pipeline {
     }
     
     stages {
-        stage('Checkout') {
+        stage('🚀 Initialize') {
             steps {
-                echo "📋 Starting build for Frontend React"
-                echo "Frontend code checked out successfully"
-                echo "Build version: ${APP_VERSION}"
-                echo "Branch: ${env.BRANCH_NAME}"
-                echo "Will use agent: ${env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev'}"
+                echo "📋 Starting Frontend CI/CD Pipeline"
+                echo "🏷️  Version: ${APP_VERSION}"
+                echo "🌿 Branch: ${env.BRANCH_NAME}"
+                echo "🤖 Agent: ${env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev'}"
             }
         }
         
-        stage('Build & Test Frontend') {
+        stage('🏗️ Build & Test') {
             steps {
                 sendNotification("🏗️ Building and testing React app...", "INFO")
                 
+                echo "📦 Installing dependencies..."
                 sh 'npm install'
-                sh 'npx react-scripts --version || echo "react-scripts not found, checking node_modules..."'
-                sh 'ls -la node_modules/.bin/ | grep react || echo "No react scripts in node_modules/.bin"'
+                
+                echo "🔨 Building application..."
                 sh 'npm run build'
+                
+                echo "🧪 Running tests..."
                 sh 'npm run test:ci'
                 
-                sh '''
-                    echo "Checking generated files:"
-                    ls -la
-                    echo "Looking for junit.xml:"
-                    find . -name "junit.xml" -type f || echo "junit.xml not found"
-                    echo "Looking for coverage directory:"
-                    ls -la coverage/ || echo "coverage directory not found"
-                '''
-                
+                // 📊 Process test results
                 script {
                     if (fileExists('junit.xml')) {
                         junit testResults: 'junit.xml', allowEmptyResults: true
-                        echo "✅ JUnit results published"
-                    } else {
-                        echo "⚠️ junit.xml not found, skipping JUnit results"
+                        echo "✅ Test results published"
                     }
-                }
-                
-                script {
+                    
                     if (fileExists('coverage/lcov-report/index.html')) {
-                        // Archive les rapports de couverture
                         archiveArtifacts artifacts: 'coverage/**/*', allowEmptyArchive: true, fingerprint: true
                         echo "✅ Coverage report archived"
-                    } else {
-                        echo "⚠️ Coverage report not found, skipping"
                     }
                 }
                 
-                sendNotification("✅ Frontend build and tests completed successfully", "SUCCESS")
+                sendNotification("✅ Build and tests completed", "SUCCESS")
             }
         }
         
-        stage('Code Quality') {
+        stage('🔍 Code Quality') {
             steps {
                 echo "🔍 Running code quality checks..."
                 
@@ -137,17 +124,16 @@ pipeline {
             }
         }
         
-        stage('Security Scan Frontend') {
+        stage('🔒 Security Scan') {
             steps {
-                echo "🔒 Running frontend security scans..."
+                echo "🔒 Running security analysis..."
                 
                 script {
                     try {
-                        // NPM Security Audit - Simple et efficace
-                        echo "Running npm audit for dependency vulnerabilities..."
+                        echo "📋 Checking npm dependencies..."
                         sh '''
                             npm audit --audit-level=moderate --production || {
-                                echo "⚠️ NPM audit found some vulnerabilities, but continuing build..."
+                                echo "⚠️ NPM audit found vulnerabilities (continuing)"
                                 npm audit --audit-level=moderate --production --json > npm-audit-report.json || true
                             }
                         '''
@@ -174,20 +160,17 @@ pipeline {
             }
         }
         
-        stage('Package & Docker Build') {
+        stage('📦 Package & Build') {
             steps {
-                echo "📦 Creating frontend artifacts and Docker image..."
+                echo "📦 Creating Docker image and artifacts..."
                 
                 script {
                     try {
-                        // Utilisation du Docker Pipeline plugin - permissions configurées
                         sh 'docker build -t bookmymovie-front:${APP_VERSION} .'
                         sh 'docker tag bookmymovie-front:${APP_VERSION} bookmymovie-front:latest'
-                        
                         echo "✅ Docker image built: bookmymovie-front:${APP_VERSION}"
                     } catch (Exception e) {
-                        echo "⚠️ Docker build failed: ${e.getMessage()}"
-                        echo "Continuing for demo purposes..."
+                        echo "⚠️ Docker build failed: ${e.getMessage()} (continuing)"
                     }
                 }
                 
@@ -208,33 +191,25 @@ pipeline {
             }
         }
         
-        stage('Deploy to Staging') {
-            when {
-                branch 'main'
-            }
+        stage('🚀 Deploy Staging') {
+            when { branch 'main' }
             steps {
-                echo "🚀 Deploying frontend to staging environment..."
+                echo "🚀 Deploying to staging environment..."
                 
                 sh '''
-                    echo "🚀 Deploying to staging..."
-                    
-                    # Stop existing services
-                    docker compose -f docker-compose.staging.yml down || echo "No existing staging services"
-                    
-                    # Start staging environment with versioned image
+                    echo "🚀 Starting staging deployment..."
+                    docker compose -f docker-compose.staging.yml down
                     APP_VERSION=${APP_VERSION} docker compose -f docker-compose.staging.yml up -d
-                    
                     echo "✅ Staging deployment completed"
                     docker compose -f docker-compose.staging.yml ps
                 '''
                 
-                echo "✅ Frontend successfully deployed to staging"
+                echo "✅ Staging deployment successful"
             }
         }
         
-        stage('Manual Approval') {
-            when {
-                branch 'main'
+        stage('⏳ Manual Approval') {
+            when { branch 'main' }
             }
             steps {
                 echo "⏳ Waiting for manual approval for production deployment..."
@@ -264,29 +239,24 @@ pipeline {
                 echo "🌟 Deploying frontend to production environment..."
                 
                 sh '''
-                    echo "🌟 Deploying to production..."
-                    
-                    # Stop existing services
-                    docker compose -f docker-compose.prod.yml down || echo "No existing production services"
-                    
-                    # Start production environment with versioned image
+                    echo "🌟 Starting production deployment..."
+                    docker compose -f docker-compose.prod.yml down
                     APP_VERSION=${APP_VERSION} docker compose -f docker-compose.prod.yml up -d
-                    
                     echo "🎉 Production deployment completed!"
                     docker compose -f docker-compose.prod.yml ps
                 '''
                 
-                echo "🎉 Frontend successfully deployed to production!"
+                echo "🎉 Production deployment successful!"
             }
         }
     }
     
     post {
         success {
-            sendNotification("🎊 Frontend pipeline completed successfully! Version: ${APP_VERSION} deployed", "SUCCESS")
+            sendNotification("🎊 Pipeline completed! Version: ${APP_VERSION} deployed", "SUCCESS")
         }
         failure {
-            sendNotification("💥 Frontend pipeline failed! Check the logs.", "FAILURE")
+            sendNotification("💥 Pipeline failed! Check the logs.", "FAILURE")
         }
         always {
             echo "Cleaning up workspace..."
