@@ -190,9 +190,9 @@ pipeline {
                 
                 script {
                     try {
-                        // Utilisation du Docker Pipeline plugin avec sudo
-                        sh 'sudo docker build -t bookmymovie-front:${APP_VERSION} .'
-                        sh 'sudo docker tag bookmymovie-front:${APP_VERSION} bookmymovie-front:latest'
+                        // Utilisation du Docker Pipeline plugin - permissions configurées
+                        sh 'docker build -t bookmymovie-front:${APP_VERSION} .'
+                        sh 'docker tag bookmymovie-front:${APP_VERSION} bookmymovie-front:latest'
                         
                         echo "✅ Docker image built: bookmymovie-front:${APP_VERSION}"
                     } catch (Exception e) {
@@ -227,10 +227,10 @@ pipeline {
                 
                 sh '''
                     echo "Stopping any existing staging deployment..."
-                    sudo docker-compose -f docker-compose.staging.yml down || echo "No existing staging containers"
+                    docker-compose -f docker-compose.staging.yml down || echo "No existing staging containers"
                     
                     echo "Starting staging deployment..."
-                    sudo docker-compose -f docker-compose.staging.yml up -d
+                    docker-compose -f docker-compose.staging.yml up -d
                     
                     echo "Waiting for container to be ready..."
                     sleep 10
@@ -239,7 +239,7 @@ pipeline {
                     curl -f http://localhost:3000 || echo "⚠️ Health check failed but continuing..."
                     
                     echo "Staging deployment completed:"
-                    sudo docker ps | grep bookmymovie-front-staging || echo "Container not found in ps"
+                    docker ps | grep bookmymovie-front-staging || echo "Container not found in ps"
                 '''
                 
                 echo "✅ Frontend successfully deployed to staging"
@@ -279,10 +279,10 @@ pipeline {
                 
                 sh '''
                     echo "Stopping any existing production deployment..."
-                    sudo docker-compose -f docker-compose.prod.yml down || echo "No existing production containers"
+                    docker-compose -f docker-compose.prod.yml down || echo "No existing production containers"
                     
                     echo "Starting production deployment..."
-                    sudo docker-compose -f docker-compose.prod.yml up -d
+                    docker-compose -f docker-compose.prod.yml up -d
                     
                     echo "Waiting for container to be ready..."
                     sleep 15
@@ -291,7 +291,7 @@ pipeline {
                     curl -f http://localhost:80 || echo "⚠️ Health check failed but continuing..."
                     
                     echo "Production deployment completed:"
-                    sudo docker ps | grep bookmymovie-front-production || echo "Container not found in ps"
+                    docker ps | grep bookmymovie-front-production || echo "Container not found in ps"
                     
                     echo "🎉 Frontend is now live in production!"
                 '''
