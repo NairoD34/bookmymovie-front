@@ -36,7 +36,6 @@ pipeline {
                 echo "🧪 Running tests..."
                 sh 'npm run test:ci'
                 
-                // 📊 Process test results
                 script {
                     if (fileExists('junit.xml')) {
                         junit testResults: 'junit.xml', allowEmptyResults: true
@@ -138,7 +137,6 @@ pipeline {
                             }
                         '''
                         
-                        // Simple Docker scan - uniquement l'image de base
                         echo "Scanning base Docker image for critical vulnerabilities..."
                         sh '''
                             docker run --rm aquasec/trivy:latest image --exit-code 0 --format table --severity CRITICAL node:18-alpine || {
@@ -147,7 +145,6 @@ pipeline {
                             }
                         '''
                         
-                        // Archive security reports if they exist
                         archiveArtifacts artifacts: '*-report.json', allowEmptyArchive: true, fingerprint: true
                         
                     } catch (Exception e) {
