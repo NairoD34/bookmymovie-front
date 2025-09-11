@@ -222,14 +222,14 @@ pipeline {
             when {
                 branch 'main'
             }
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             steps {
                 echo "🚀 Deploying frontend to staging environment..."
                 
                 sh '''
                     echo "🚀 Deploying to staging..."
-                    
-                    # Export version for docker-compose
-                    export APP_VERSION=${APP_VERSION}
                     
                     # Stop existing services
                     docker compose -f docker-compose.staging.yml down || echo "No existing staging services"
@@ -273,14 +273,14 @@ pipeline {
             when {
                 branch 'main'
             }
+            agent { 
+                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+            }
             steps {
                 echo "🌟 Deploying frontend to production environment..."
                 
                 sh '''
                     echo "🌟 Deploying to production..."
-                    
-                    # Export version for docker-compose
-                    export APP_VERSION=${APP_VERSION}
                     
                     # Stop existing services
                     docker compose -f docker-compose.prod.yml down || echo "No existing production services"
