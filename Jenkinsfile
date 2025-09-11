@@ -188,21 +188,24 @@ pipeline {
             steps {
                 echo "📦 Creating frontend artifacts and Docker image..."
                 
+                script {
+                    // Utilisation du Docker Pipeline plugin - plus propre et gère les permissions
+                    def dockerImage = docker.build("bookmymovie-front:${APP_VERSION}")
+                    
+                    // Tag avec latest pour faciliter le déploiement
+                    dockerImage.tag("latest")
+                    
+                    echo "✅ Docker image built: bookmymovie-front:${APP_VERSION}"
+                }
+                
                 sh '''
-                    echo "Building Docker image..."
-                    docker build -t bookmymovie-front:${APP_VERSION} .
-                    docker tag bookmymovie-front:${APP_VERSION} bookmymovie-front:latest
-                    
-                    echo "Docker image built successfully:"
-                    docker images | grep bookmymovie-front || echo "Image not found in list"
-                    
                     echo "Creating deployment artifacts..."
                     mkdir -p dist
                     echo "bookmymovie-front:${APP_VERSION}" > dist/docker-image-tag.txt
                     echo "${APP_VERSION}" > dist/version.txt
                     echo "$(date)" > dist/build-timestamp.txt
                     
-                    echo "Preparing artifacts for archiving..."
+                    echo "Artifacts created:"
                     ls -la dist/
                 '''
                 
