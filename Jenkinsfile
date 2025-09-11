@@ -210,13 +210,13 @@ pipeline {
         
         stage('⏳ Manual Approval') {
             when { branch 'main' }
-            }
             steps {
-                echo "⏳ Waiting for manual approval for production deployment..."
+                echo "⏳ Waiting for production deployment approval..."
                 
                 script {
                     def deployDecision = input(
-                        message: 'Deploy frontend to production?',
+                        message: 'Deploy to Production?',
+                        ok: 'Proceed',
                         parameters: [
                             choice(choices: ['Deploy', 'Cancel'], description: 'Choose action', name: 'ACTION')
                         ]
@@ -231,12 +231,10 @@ pipeline {
             }
         }
         
-        stage('Deploy to Production') {
-            when {
-                branch 'main'
-            }
+        stage('🌟 Deploy Production') {
+            when { branch 'main' }
             steps {
-                echo "🌟 Deploying frontend to production environment..."
+                echo "🌟 Deploying to production environment..."
                 
                 sh '''
                     echo "🌟 Starting production deployment..."
