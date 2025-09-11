@@ -1,7 +1,9 @@
 @Library('jenkins-shared-lib') _
 
 pipeline {
-    agent any
+    agent { 
+        label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
+    }
     
     tools {
         nodejs 'nodejs24.7.0'
@@ -23,9 +25,6 @@ pipeline {
         }
         
         stage('Build & Test Frontend') {
-            agent { 
-                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
-            }
             steps {
                 sendNotification("🏗️ Building and testing React app...", "INFO")
                 
@@ -68,9 +67,6 @@ pipeline {
         }
         
         stage('Code Quality') {
-            agent { 
-                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
-            }
             steps {
                 echo "🔍 Running code quality checks..."
                 
@@ -142,9 +138,6 @@ pipeline {
         }
         
         stage('Security Scan Frontend') {
-            agent { 
-                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
-            }
             steps {
                 echo "🔒 Running frontend security scans..."
                 
@@ -182,9 +175,6 @@ pipeline {
         }
         
         stage('Package & Docker Build') {
-            agent { 
-                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
-            }
             steps {
                 echo "📦 Creating frontend artifacts and Docker image..."
                 
@@ -221,9 +211,6 @@ pipeline {
         stage('Deploy to Staging') {
             when {
                 branch 'main'
-            }
-            agent { 
-                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
             }
             steps {
                 echo "🚀 Deploying frontend to staging environment..."
@@ -272,9 +259,6 @@ pipeline {
         stage('Deploy to Production') {
             when {
                 branch 'main'
-            }
-            agent { 
-                label env.BRANCH_NAME == 'main' ? 'build-heavy-prod' : 'build-heavy-dev' 
             }
             steps {
                 echo "🌟 Deploying frontend to production environment..."
