@@ -61,5 +61,6 @@ docs/
 tmp/
 temp/
 
-# Security reports
-*.json
+# Security reports (but keep package files for npm)
+*-report.json
+audit-*.json

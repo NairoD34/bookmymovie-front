@@ -226,20 +226,14 @@ pipeline {
                 echo "🚀 Deploying frontend to staging environment..."
                 
                 sh '''
-                    echo "Stopping any existing staging deployment..."
-                    docker-compose -f docker-compose.staging.yml down || echo "No existing staging containers"
+                    echo "🚀 Deploying to staging..."
                     
-                    echo "Starting staging deployment..."
-                    docker-compose -f docker-compose.staging.yml up -d
+                    # Utilise docker compose (nouvelle syntaxe) ou fallback
+                    docker compose -f docker-compose.staging.yml down || docker-compose -f docker-compose.staging.yml down || echo "No existing containers"
+                    docker compose -f docker-compose.staging.yml up -d || docker-compose -f docker-compose.staging.yml up -d
                     
-                    echo "Waiting for container to be ready..."
-                    sleep 10
-                    
-                    echo "Verifying staging deployment..."
-                    curl -f http://localhost:3000 || echo "⚠️ Health check failed but continuing..."
-                    
-                    echo "Staging deployment completed:"
-                    docker ps | grep bookmymovie-front-staging || echo "Container not found in ps"
+                    echo "✅ Staging deployment completed"
+                    docker ps | grep staging || echo "Checking containers..."
                 '''
                 
                 echo "✅ Frontend successfully deployed to staging"
@@ -278,22 +272,14 @@ pipeline {
                 echo "🌟 Deploying frontend to production environment..."
                 
                 sh '''
-                    echo "Stopping any existing production deployment..."
-                    docker-compose -f docker-compose.prod.yml down || echo "No existing production containers"
+                    echo "🌟 Deploying to production..."
                     
-                    echo "Starting production deployment..."
-                    docker-compose -f docker-compose.prod.yml up -d
+                    # Utilise docker compose (nouvelle syntaxe) ou fallback
+                    docker compose -f docker-compose.prod.yml down || docker-compose -f docker-compose.prod.yml down || echo "No existing containers"
+                    docker compose -f docker-compose.prod.yml up -d || docker-compose -f docker-compose.prod.yml up -d
                     
-                    echo "Waiting for container to be ready..."
-                    sleep 15
-                    
-                    echo "Verifying production deployment..."
-                    curl -f http://localhost:80 || echo "⚠️ Health check failed but continuing..."
-                    
-                    echo "Production deployment completed:"
-                    docker ps | grep bookmymovie-front-production || echo "Container not found in ps"
-                    
-                    echo "🎉 Frontend is now live in production!"
+                    echo "🎉 Production deployment completed!"
+                    docker ps | grep production || echo "Checking containers..."
                 '''
                 
                 echo "🎉 Frontend successfully deployed to production!"
