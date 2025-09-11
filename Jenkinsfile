@@ -228,12 +228,17 @@ pipeline {
                 sh '''
                     echo "🚀 Deploying to staging..."
                     
-                    # Utilise docker compose (nouvelle syntaxe) ou fallback
-                    docker compose -f docker-compose.staging.yml down || docker-compose -f docker-compose.staging.yml down || echo "No existing containers"
-                    docker compose -f docker-compose.staging.yml up -d || docker-compose -f docker-compose.staging.yml up -d
+                    # Export version for docker-compose
+                    export APP_VERSION=${APP_VERSION}
+                    
+                    # Stop existing services
+                    docker compose -f docker-compose.staging.yml down || echo "No existing staging services"
+                    
+                    # Start staging environment with versioned image
+                    APP_VERSION=${APP_VERSION} docker compose -f docker-compose.staging.yml up -d
                     
                     echo "✅ Staging deployment completed"
-                    docker ps | grep staging || echo "Checking containers..."
+                    docker compose -f docker-compose.staging.yml ps
                 '''
                 
                 echo "✅ Frontend successfully deployed to staging"
@@ -274,12 +279,17 @@ pipeline {
                 sh '''
                     echo "🌟 Deploying to production..."
                     
-                    # Utilise docker compose (nouvelle syntaxe) ou fallback
-                    docker compose -f docker-compose.prod.yml down || docker-compose -f docker-compose.prod.yml down || echo "No existing containers"
-                    docker compose -f docker-compose.prod.yml up -d || docker-compose -f docker-compose.prod.yml up -d
+                    # Export version for docker-compose
+                    export APP_VERSION=${APP_VERSION}
+                    
+                    # Stop existing services
+                    docker compose -f docker-compose.prod.yml down || echo "No existing production services"
+                    
+                    # Start production environment with versioned image
+                    APP_VERSION=${APP_VERSION} docker compose -f docker-compose.prod.yml up -d
                     
                     echo "🎉 Production deployment completed!"
-                    docker ps | grep production || echo "Checking containers..."
+                    docker compose -f docker-compose.prod.yml ps
                 '''
                 
                 echo "🎉 Frontend successfully deployed to production!"

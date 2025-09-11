@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   bookmymovie-front:
-    image: bookmymovie-front:latest
+    image: bookmymovie-front:${APP_VERSION:-latest}
     container_name: bookmymovie-front-production
     ports:
       - "80:80"
