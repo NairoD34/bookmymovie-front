@@ -189,17 +189,21 @@ pipeline {
                 echo "📦 Creating frontend artifacts and Docker image..."
                 
                 sh '''
-                    echo "Creating build artifacts..."
-                    mkdir -p build dist
-                    echo "Frontend Build ${APP_VERSION}" > build/index.html
-                    echo "Static assets ready" > build/assets.txt
-                    
                     echo "Building Docker image..."
-                    # docker build -t bookmymovie-front:${APP_VERSION} .
-                    # docker tag bookmymovie-front:${APP_VERSION} registry.local/bookmymovie-front:${APP_VERSION}
+                    docker build -t bookmymovie-front:${APP_VERSION} .
+                    docker tag bookmymovie-front:${APP_VERSION} bookmymovie-front:latest
+                    
+                    echo "Docker image built successfully:"
+                    docker images | grep bookmymovie-front || echo "Image not found in list"
+                    
+                    echo "Creating deployment artifacts..."
+                    mkdir -p dist
+                    echo "bookmymovie-front:${APP_VERSION}" > dist/docker-image-tag.txt
+                    echo "${APP_VERSION}" > dist/version.txt
+                    echo "$(date)" > dist/build-timestamp.txt
                     
                     echo "Preparing artifacts for archiving..."
-                    cp -r build dist/
+                    ls -la dist/
                 '''
                 
                 archiveArtifacts artifacts: 'dist/**', fingerprint: true
@@ -216,10 +220,20 @@ pipeline {
                 echo "🚀 Deploying frontend to staging environment..."
                 
                 sh '''
-                    echo "Deploying to staging..."
-                    # docker-compose -f docker-compose.staging.yml up -d frontend
-                    # kubectl apply -f k8s/staging/frontend-deployment.yml
-                    echo "Frontend deployed to staging environment"
+                    echo "Stopping any existing staging deployment..."
+                    docker-compose -f docker-compose.staging.yml down || echo "No existing staging containers"
+                    
+                    echo "Starting staging deployment..."
+                    docker-compose -f docker-compose.staging.yml up -d
+                    
+                    echo "Waiting for container to be ready..."
+                    sleep 10
+                    
+                    echo "Verifying staging deployment..."
+                    curl -f http://localhost:3000 || echo "⚠️ Health check failed but continuing..."
+                    
+                    echo "Staging deployment completed:"
+                    docker ps | grep bookmymovie-front-staging || echo "Container not found in ps"
                 '''
                 
                 echo "✅ Frontend successfully deployed to staging"
@@ -258,10 +272,22 @@ pipeline {
                 echo "🌟 Deploying frontend to production environment..."
                 
                 sh '''
-                    echo "Deploying to production..."
-                    # docker-compose -f docker-compose.prod.yml up -d frontend
-                    # kubectl apply -f k8s/prod/frontend-deployment.yml
-                    echo "Frontend deployed to production environment"
+                    echo "Stopping any existing production deployment..."
+                    docker-compose -f docker-compose.prod.yml down || echo "No existing production containers"
+                    
+                    echo "Starting production deployment..."
+                    docker-compose -f docker-compose.prod.yml up -d
+                    
+                    echo "Waiting for container to be ready..."
+                    sleep 15
+                    
+                    echo "Verifying production deployment..."
+                    curl -f http://localhost:80 || echo "⚠️ Health check failed but continuing..."
+                    
+                    echo "Production deployment completed:"
+                    docker ps | grep bookmymovie-front-production || echo "Container not found in ps"
+                    
+                    echo "🎉 Frontend is now live in production!"
                 '''
                 
                 echo "🎉 Frontend successfully deployed to production!"

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  bookmymovie-front:
+    image: bookmymovie-front:latest
+    container_name: bookmymovie-front-production
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=https://api.bookmymovie.com
+    restart: unless-stopped
+    labels:
+      - "environment=production"
+      - "service=frontend"
+      - "project=bookmymovie"
+    networks:
+      - bookmymovie-network
+    # Uncomment for SSL/TLS
+    # volumes:
+    #   - ./ssl:/etc/nginx/ssl:ro
+
+networks:
+  bookmymovie-network:
+    driver: bridge
